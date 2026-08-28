@@ -7,9 +7,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         User = get_user_model()
-        # username = 
-        # email = 
-        # password = 
+        username = "whiteant"
+        email = "trafi227@gmail.com"
+        password = "whiteant321@"
 
         if User.objects.filter(username=username).exists():
             self.stdout.write("User already exists")

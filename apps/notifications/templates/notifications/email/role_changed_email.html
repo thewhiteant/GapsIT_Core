@@ -1,0 +1,6 @@
+{% extends "notifications/email/_email_base.html" %}
+{% block body %}
+<h2 style="margin:0 0 12px;font-size:19px;">Your account role has changed</h2>
+<p>Hi {{ user.get_full_name|default:user.username }},</p>
+<p>Your role on GapsIT Core changed from <strong>{{ old_role }}</strong> to <strong>{{ new_role }}</strong>.</p>
+{% endblock %}

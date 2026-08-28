@@ -1,0 +1,29 @@
+{% extends "employees/base.html" %}
+{% block title %}Set a new password - GapsIT Core{% endblock %}
+{% block content %}
+  {% if validlink %}
+    <h1>Set a new password</h1>
+    <p class="subtitle">Choose a new password for your account.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% if form.errors %}
+        <div class="alert alert-error">
+          {% for field in form %}{% for error in field.errors %}{{ error }}<br>{% endfor %}{% endfor %}
+        </div>
+      {% endif %}
+      <div class="form-row">
+        <label for="id_new_password1">New password</label>
+        {{ form.new_password1 }}
+      </div>
+      <div class="form-row">
+        <label for="id_new_password2">Confirm new password</label>
+        {{ form.new_password2 }}
+      </div>
+      <button type="submit" class="btn-primary">Set new password</button>
+    </form>
+  {% else %}
+    <h1>Link expired</h1>
+    <p class="subtitle">This password reset link is invalid or has already been used.</p>
+    <p class="foot-link"><a href="{% url 'password_reset' %}">Request a new link</a></p>
+  {% endif %}
+{% endblock %}

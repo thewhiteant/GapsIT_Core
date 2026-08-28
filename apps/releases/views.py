@@ -21,13 +21,19 @@ def request_download_view(request, platform):
     """
     GET /accounts/download/<platform>/
 
-    Only reachable by a signed-in user (redirects to the login page
-    otherwise, via @login_required) -- i.e. this only ever gets hit right
-    after someone has gone through /core/accounts/login/.
+    Only reachable by a signed-in user whose linked Employee profile has
+    role "employee" or "admin". Accounts with no Employee record at all,
+    or whose Employee role is still the default "user" (i.e. registered
+    but never promoted), are rejected with 403 -- even if they guess/type
+    the URL directly.
 
     Issues a brand-new, single-use token for the requested platform and
     immediately redirects to the file-serving URL below.
     """
+    employee = getattr(request.user, "employee", None)
+    if employee is None or employee.role == "user":
+        raise PermissionDenied("You need employee access to download GapsSight.")
+
     if platform not in VALID_PLATFORMS:
         raise Http404("Unknown platform.")
 

@@ -23,10 +23,10 @@ class GateCheckInputSerializer(serializers.Serializer):
     isPresent = serializers.BooleanField(source="is_present")
     timerRunning = serializers.BooleanField(source="timer_running")
 
-    def validate_process_name(self, value):
+    def validate_processName(self, value):
         return value or ""
 
-    def validate_window_title(self, value):
+    def validate_windowTitle(self, value):
         return value or ""
 
 

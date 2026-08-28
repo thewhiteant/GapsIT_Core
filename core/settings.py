@@ -4,7 +4,8 @@ from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY", default="django-insecure-change-this-in-production")
-DEBUG = True
+DEBUG = False
+
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="gapsit.bd,www.gapsit.bd", cast=Csv())
 
 FORCE_SCRIPT_NAME = "/core"
@@ -22,6 +23,7 @@ INSTALLED_APPS = [
     "apps.allowlist",
     "apps.activity",
     "apps.releases",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -36,17 +38,15 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 ROOT_URLCONF = "core.urls"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # Project-level template dir -- only used for our admin/index.html and
-        # admin/base_site.html overrides (see templates/admin/). The
-        # filesystem loader (this DIRS list) is checked before the
-        # app_directories loader, so these two files safely take priority
-        # over django.contrib.admin's built-ins without touching any other
-        # app's templates.
         "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -58,6 +58,7 @@ TEMPLATES = [
                 # Feeds the "beautiful" stats/chart cards on the admin
                 # homepage only -- see apps/employees/context_processors.py.
                 "apps.employees.context_processors.gapsit_admin_dashboard",
+                "apps.notifications.context_processors.email_verification_status",
             ],
         },
     },
@@ -75,7 +76,10 @@ DATABASES = {
         "HOST": config("DB_HOST", default=""),
         "PORT": config("DB_PORT", default=""),
         "OPTIONS": (
-            {"charset": "utf8mb4"}
+            {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
             if config("DB_ENGINE", default="django.db.backends.sqlite3") == "django.db.backends.mysql"
             else {}
         ),
@@ -132,7 +136,7 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
-    default="https://gapsit.bd/core,https://www.gapsit.bd/core",
+    default="https://gapsit.bd,https://www.gapsit.bd",
     cast=Csv(),
 )
 
@@ -158,7 +162,7 @@ GAPSIGHT_RELEASES_DIR = config(
 )
 
 GAPSIGHT_RELEASES = {
-    "windows": {"filename": "GapsSight_Windows_0.1.rar", "label": "Windows"},
+    "windows": {"filename": "GapsSight_Windows_0.1.2.rar", "label": "Windows"},
     "linux": {"filename": "GapsSight_Linux_0.1.rar", "label": "Linux"},
 }
 
@@ -167,3 +171,31 @@ GAPSIGHT_RELEASES = {
 GAPSIGHT_DOWNLOAD_TOKEN_MINUTES = config(
     "GAPSIGHT_DOWNLOAD_TOKEN_MINUTES", default=10, cast=int
 )
+
+# ----------------------------------------------------------------------
+# Email (see apps/notifications/) -- powers email verification, password
+# reset emails, automatic account notifications, and the admin broadcast
+# page. Point these at your hosting's webmail/SMTP details via .env --
+# see the "connecting webmail" notes left in .env.
+# ----------------------------------------------------------------------
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = config("EMAIL_HOST", default="mail.gapsit.bd")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)
+# Fail fast instead of hanging a request if the mail server is unreachable.
+EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", default=10, cast=int)
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER or "no-reply@gapsit.bd")
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Used to build absolute links inside emails (verify-email, notices).
+# Django's own password-reset email builds its link from the request
+# instead, so this only matters for apps/notifications' own emails.
+SITE_BASE_URL = config("SITE_BASE_URL", default="https://gapsit.bd/core")
+
+# How long a "forgot password" link stays valid, in seconds. Default: 3 days.
+PASSWORD_RESET_TIMEOUT = config("PASSWORD_RESET_TIMEOUT", default=60 * 60 * 24 * 3, cast=int)

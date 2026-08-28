@@ -1,0 +1,56 @@
+{% extends "employees/base.html" %}
+{% block title %}Send a notice - GapsIT Core{% endblock %}
+{% block card_class %}xwide{% endblock %}
+{% block content %}
+  <div class="top-nav">
+    <a href="{% url 'dashboard' %}">&larr; Back to dashboard</a>
+  </div>
+  <h1>Send a notice or update</h1>
+  <p class="subtitle">Email any group of accounts directly from here.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors.0 }}</div>{% endif %}
+    <div class="form-row">
+      <label for="id_audience">Send to</label>
+      {{ form.audience }}
+    </div>
+    <div class="form-row">
+      <label for="id_specific_users">{{ form.specific_users.label }}</label>
+      {{ form.specific_users }}
+    </div>
+    <div class="form-row">
+      <label for="id_subject">Subject</label>
+      {{ form.subject }}
+    </div>
+    <div class="form-row">
+      <label for="id_message">Message</label>
+      {{ form.message }}
+    </div>
+    <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-dim);">
+      {{ form.force_send }} {{ form.force_send.label }}
+    </label>
+    <button type="submit" class="btn-primary">Send notice</button>
+  </form>
+
+  {% if sent_count is not None %}
+    <div class="alert alert-success" style="margin-top:18px;">Sent to {{ sent_count }} of {{ total_count }} recipient(s).</div>
+  {% endif %}
+
+  <h2 class="section-title">Recent broadcasts</h2>
+  <table class="entry-table">
+    <thead><tr><th>When</th><th>Subject</th><th>To</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for log in recent_logs %}
+        <tr>
+          <td>{{ log.created_at|date:"M d, H:i" }}</td>
+          <td>{{ log.subject }}</td>
+          <td>{{ log.recipient_email }}</td>
+          <td><span class="badge {% if log.status == 'sent' %}badge-active{% else %}badge-inactive{% endif %}">{{ log.get_status_display }}</span></td>
+        </tr>
+      {% empty %}
+        <tr class="empty-row"><td colspan="4">No broadcasts sent yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

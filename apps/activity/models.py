@@ -51,6 +51,22 @@ class ActivitySession(models.Model):
 
     synced_at = models.DateTimeField(auto_now_add=True)
 
+    is_manual_entry = models.BooleanField(
+        default=False,
+        help_text="True if this session was hand-entered by an admin in the "
+        "admin panel instead of synced automatically from the GapsSight "
+        "desktop app.",
+    )
+    entered_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="activity_sessions_entered",
+        help_text="Admin who manually created this session. Blank for "
+        "sessions that arrived automatically via the sync API.",
+    )
+
     class Meta:
         ordering = ["-start_time"]
         constraints = [

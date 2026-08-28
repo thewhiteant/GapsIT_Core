@@ -1,0 +1,21 @@
+{% extends "employees/base.html" %}
+{% block title %}Reset password - GapsIT Core{% endblock %}
+{% block content %}
+  <h1>Reset your password</h1>
+  <p class="subtitle">Enter the email address on your account and we'll send you a link to reset your password.</p>
+
+  {% if form.errors %}
+    <div class="alert alert-error">Please enter a valid email address.</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-row">
+      <label for="id_email">Email</label>
+      {{ form.email }}
+    </div>
+    <button type="submit" class="btn-primary">Send reset link</button>
+  </form>
+
+  <p class="foot-link"><a href="{% url 'login' %}">Back to login</a></p>
+{% endblock %}

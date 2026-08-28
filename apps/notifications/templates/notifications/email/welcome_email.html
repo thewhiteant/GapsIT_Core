@@ -1,0 +1,5 @@
+{% extends "notifications/email/_email_base.html" %}
+{% block body %}
+<h2 style="margin:0 0 12px;font-size:19px;">Welcome to GapsIT Core, {{ user.get_full_name|default:user.username }}!</h2>
+<p>Your account has been created successfully. You can sign in any time, and manage which emails you receive from your dashboard's notification settings.</p>
+{% endblock %}

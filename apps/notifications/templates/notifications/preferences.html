@@ -1,0 +1,41 @@
+{% extends "employees/base.html" %}
+{% block title %}Notification settings - GapsIT Core{% endblock %}
+{% block card_class %}wide{% endblock %}
+{% block content %}
+  <div class="top-nav">
+    <a href="{% url 'dashboard' %}">&larr; Back to dashboard</a>
+  </div>
+  <h1>Notification settings</h1>
+  <p class="subtitle">Choose which emails you want to receive.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    {% for row in rows %}
+      <div class="form-row" style="flex-direction:row; justify-content:space-between; align-items:center; border-bottom:1px solid var(--panel-border); padding-bottom:12px;">
+        <div>
+          <div style="font-weight:600;">{{ row.type.name }}</div>
+          {% if row.type.description %}<div class="subtitle" style="margin:2px 0 0;">{{ row.type.description }}</div>{% endif %}
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; white-space:nowrap;">
+          <input type="checkbox" name="type_{{ row.type.id }}" {% if row.enabled %}checked{% endif %}>
+          <span class="subtitle" style="margin:0;">Email me</span>
+        </label>
+      </div>
+    {% empty %}
+      <p class="subtitle">No optional notification types are configured yet.</p>
+    {% endfor %}
+
+    <button type="submit" class="btn-primary" style="margin-top:16px;">Save preferences</button>
+  </form>
+
+  {% if mandatory_types %}
+    <h2 class="section-title">Always on</h2>
+    <p class="subtitle" style="margin-bottom:10px;">These are security-related and can't be turned off.</p>
+    {% for t in mandatory_types %}
+      <div class="form-row" style="flex-direction:row; justify-content:space-between; align-items:center;">
+        <div>{{ t.name }}</div>
+        <span class="badge badge-active">On</span>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}

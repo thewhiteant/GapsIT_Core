@@ -5,6 +5,10 @@ from apps.employees.views import CustomTokenObtainPairView
 from apps.employees.urls import auth_page_urlpatterns
 from apps.allowlist.urls import allowlist_page_urlpatterns
 from apps.releases.urls import release_page_urlpatterns
+from apps.notifications.urls import (
+    notifications_page_urlpatterns,
+    password_reset_page_urlpatterns,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -26,4 +30,9 @@ urlpatterns = [
     # GapsSight client download links -- only reachable once logged in,
     # right after /accounts/login/ (see apps/releases/).
     path("accounts/", include(release_page_urlpatterns)),
+    # Email verification, per-user notification settings, and the admin
+    # "send a notice" broadcast page (see apps/notifications/).
+    path("accounts/", include(notifications_page_urlpatterns)),
+    # Django's built-in "forgot password" email flow (see apps/notifications/).
+    path("accounts/", include(password_reset_page_urlpatterns)),
 ]

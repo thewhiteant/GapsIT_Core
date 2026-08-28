@@ -1,0 +1,247 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 · Lost in GapsIT Core</title>
+
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #111827;
+    --text-dim: #6b7280;
+    --accent: #4f7cff;
+    --accent-hover: #3d67e6;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+      radial-gradient(
+        circle at 50% 20%,
+        rgba(79, 124, 255, 0.07),
+        transparent 45%
+      ),
+      #ffffff;
+
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif;
+
+    color: var(--text);
+    padding: 30px;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+  }
+
+  /* LARGE GIF — NO CIRCLE */
+  .photo-wrap {
+    width: 420px;
+    max-width: 90vw;
+    height: auto;
+    margin: 0 auto 35px;
+
+    overflow: hidden;
+
+    /* No border */
+    border: none;
+
+    /* Subtle image shadow */
+    box-shadow: 0 15px 35px rgba(17, 24, 39, 0.10);
+  }
+
+  .photo-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+  }
+
+  .code {
+    font-size: clamp(90px, 14vw, 150px);
+    font-weight: 900;
+    letter-spacing: -8px;
+    line-height: 0.9;
+    margin-bottom: 20px;
+
+    background: linear-gradient(
+      135deg,
+      #4f7cff 0%,
+      #6366f1 50%,
+      #8b5cf6 100%
+    );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  h1 {
+    margin: 0 0 14px;
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 700;
+    letter-spacing: -0.8px;
+  }
+
+  .subtitle {
+    max-width: 600px;
+    margin: 0 auto 32px;
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 14px 28px;
+
+    background: var(--accent);
+    color: #ffffff;
+
+    border-radius: 10px;
+    text-decoration: none;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    box-shadow: 0 8px 20px rgba(79, 124, 255, 0.25);
+
+    transition:
+      transform 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(79, 124, 255, 0.30);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .footer {
+    margin-top: 45px;
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  /* TABLET */
+  @media (max-width: 700px) {
+    body {
+      padding: 24px;
+    }
+
+    .photo-wrap {
+      width: 320px;
+      max-width: 90vw;
+      margin-bottom: 30px;
+    }
+
+    .code {
+      letter-spacing: -5px;
+    }
+  }
+
+  /* MOBILE */
+  @media (max-width: 480px) {
+    body {
+      padding: 20px;
+    }
+
+    .photo-wrap {
+      width: 280px;
+      max-width: 90vw;
+      margin-bottom: 26px;
+    }
+
+    .code {
+      font-size: 90px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 24px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .btn-primary {
+      width: 100%;
+      max-width: 260px;
+    }
+
+    .footer {
+      margin-top: 35px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<main class="container">
+
+  <div class="photo-wrap">
+    <img
+      src="{% static 'images/my_photo.gif' %}"
+      alt="GapsIT"
+    >
+  </div>
+
+  <div class="code">404</div>
+
+  <h1>Even I couldn't find this page.</h1>
+
+  <p class="subtitle">
+    And I built the whole thing.
+    This route seems to have disappeared somewhere.
+    Maybe it never existed — or maybe it just wandered off.
+  </p>
+
+  <a href="/core/" class="btn-primary">
+    ← Take me home
+  </a>
+
+  <div class="footer">
+    GapsIT Core · Page Not Found
+  </div>
+
+</main>
+
+</body>
+</html>
