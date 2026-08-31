@@ -21,6 +21,19 @@
   .gap-dashboard-panel h2 { display:flex; align-items:center; justify-content:space-between; }
   .gap-dashboard-panel h2 a { font-size: 12.5px; font-weight: 600; }
   .gap-chart-wrap { background: var(--darkened-bg); border: 1px solid var(--hairline-color); border-radius: 10px; padding: 14px; }
+
+  .gap-security-banner {
+    background: #4a1616;
+    border: 1px solid #7a2323;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    color: #ffdada;
+  }
+  .gap-security-banner h2 { margin: 0 0 6px; font-size: 15px; color: #ffdada; display:flex; align-items:center; justify-content:space-between; }
+  .gap-security-banner h2 a { color: #ffb3b3; font-size: 12.5px; font-weight: 600; }
+  .gap-security-banner ul { margin: 6px 0 0; padding-left: 18px; font-size: 12.5px; }
+  .gap-security-banner ul li { margin-bottom: 2px; }
 </style>
 {% endblock %}
 
@@ -35,11 +48,30 @@
 {% block content %}
 <div id="content-main">
 
+  {% if security_alert_banner %}
+  <div class="gap-security-banner">
+    <h2>
+      <span>🚨 {{ security_alert_banner.total }} unresolved security alert{{ security_alert_banner.total|pluralize }}
+        ({{ security_alert_banner.critical_count }} critical, {{ security_alert_banner.high_count }} high)</span>
+      <a href="{% url 'admin:security-report-card' %}">Open Cyber Security Report Card &rarr;</a>
+    </h2>
+    <ul>
+      {% for event in security_alert_banner.latest %}
+      <li>[{{ event.get_severity_display }}] {{ event.summary }} &middot; {{ event.last_seen_at|timesince }} ago</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
   {% if gapsit_dashboard %}
   <div class="module gap-dashboard-panel">
     <h2>
       <span>📊 Today at a glance</span>
-      <a href="{% url 'admin:ceo-work-table' %}">Open full CEO Work Table &rarr;</a>
+      <span>
+        <a href="{% url 'admin:ceo-work-table' %}">Open full CEO Work Table &rarr;</a>
+        &nbsp;&middot;&nbsp;
+        <a href="{% url 'admin:security-report-card' %}">🛡️ Cyber Security Report Card &rarr;</a>
+      </span>
     </h2>
     <div class="gap-stats-grid">
       <div class="gap-card"><div class="num">{{ gapsit_dashboard.total_accounts }}</div><div class="label">Total Accounts</div></div>

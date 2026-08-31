@@ -10,12 +10,11 @@ from .views import (
 
 # Included under "accounts/" in core/urls.py, same as login/register/dashboard.
 notifications_page_urlpatterns = [
-    path("verify-email/<str:token>/", verify_email_view, name="verify_email"),
     path("verify-email/resend/", resend_verification_view, name="resend_verification"),
+    path("verify-email/<str:token>/", verify_email_view, name="verify_email"),
     path("notifications/", notification_preferences_view, name="notification_preferences"),
     path("notifications/send/", broadcast_view, name="admin_broadcast"),
 ]
-
 # Django's built-in "forgot password" email flow. Views/templates are
 # customised only for styling; the security logic (signed, time-limited,
 # single-use tokens) is Django's own, unmodified.

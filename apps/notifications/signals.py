@@ -42,6 +42,10 @@ def send_verification_email(user):
         return False
 
     token = make_verification_token(user)
+    # reverse() already includes the FORCE_SCRIPT_NAME prefix (e.g. "/core"),
+    # so SITE_BASE_URL must be scheme+host ONLY (e.g. "https://gapsit.bd"),
+    # not "https://gapsit.bd/core" -- otherwise the prefix gets doubled and
+    # every verification link 404s.
     path = reverse("verify_email", args=[token])
     base = getattr(settings, "SITE_BASE_URL", "").rstrip("/")
     link = f"{base}{path}" if base else path

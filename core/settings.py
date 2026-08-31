@@ -8,6 +8,27 @@ DEBUG = False
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="gapsit.bd,www.gapsit.bd", cast=Csv())
 
+#security
+
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+
+# cPanel/Apache terminates HTTPS and forwards plain HTTP to the Passenger
+# app behind it. Without this, Django thinks every request is plain HTTP,
+# so anything that treats http vs https as meaningful (redirects, secure
+# cookies, CSRF origin checks) gets it wrong -- which is what produces an
+# ERR_TOO_MANY_REDIRECTS loop against Apache's own force-HTTPS rule.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS",
+    default="https://gapsit.bd,https://www.gapsit.bd",
+    cast=Csv(),
+)
+
 FORCE_SCRIPT_NAME = "/core"
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -24,6 +45,7 @@ INSTALLED_APPS = [
     "apps.activity",
     "apps.releases",
     "apps.notifications",
+    "apps.security",
 ]
 
 MIDDLEWARE = [
@@ -36,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.security.middleware.SecurityMonitoringMiddleware",
 ]
 
 STATICFILES_DIRS = [
@@ -59,6 +82,7 @@ TEMPLATES = [
                 # homepage only -- see apps/employees/context_processors.py.
                 "apps.employees.context_processors.gapsit_admin_dashboard",
                 "apps.notifications.context_processors.email_verification_status",
+                "apps.security.context_processors.security_alerts_banner",
             ],
         },
     },
@@ -195,7 +219,12 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # Used to build absolute links inside emails (verify-email, notices).
 # Django's own password-reset email builds its link from the request
 # instead, so this only matters for apps/notifications' own emails.
-SITE_BASE_URL = config("SITE_BASE_URL", default="https://gapsit.bd/core")
+
+# Scheme + host ONLY -- do NOT include the "/core" FORCE_SCRIPT_NAME prefix
+# here. reverse() (used when building the email-verification link) already
+# adds that prefix automatically, so including it in SITE_BASE_URL too would
+# produce a broken "/core/core/..." link.
+SITE_BASE_URL = config("SITE_BASE_URL", default="https://gapsit.bd")
 
 # How long a "forgot password" link stays valid, in seconds. Default: 3 days.
 PASSWORD_RESET_TIMEOUT = config("PASSWORD_RESET_TIMEOUT", default=60 * 60 * 24 * 3, cast=int)

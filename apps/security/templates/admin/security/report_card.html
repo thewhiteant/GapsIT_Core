@@ -1,0 +1,155 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+  .gap-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+    margin: 18px 0 24px;
+  }
+  .gap-card {
+    background: var(--darkened-bg);
+    border: 1px solid var(--hairline-color);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .gap-card.alert { border-color: #c0392b; }
+  .gap-card .num { font-size: 26px; font-weight: 700; color: var(--body-loud-color); line-height: 1.15; }
+  .gap-card .num.danger { color: #ff6b6b; }
+  .gap-card .label { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--body-quiet-color); margin-top: 4px; }
+
+  .gap-two-col { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-bottom: 26px; }
+  @media (max-width: 900px) { .gap-two-col { grid-template-columns: 1fr; } }
+
+  .gap-chart-wrap { background: var(--darkened-bg); border: 1px solid var(--hairline-color); border-radius: 10px; padding: 18px; margin-bottom: 26px; }
+  .gap-panel-title { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--body-quiet-color); margin: 0 0 10px; }
+
+  table.gap-sec-table { width: 100%; border-collapse: collapse; }
+  table.gap-sec-table th, table.gap-sec-table td { padding: 9px 10px; border-bottom: 1px solid var(--hairline-color); text-align: left; font-size: 13px; }
+  table.gap-sec-table th { text-transform: uppercase; font-size: 11px; letter-spacing: .04em; color: var(--body-quiet-color); }
+  table.gap-sec-table tbody tr:hover { background: var(--darkened-bg); }
+
+  .gap-badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .gap-badge-critical { background: #4a1616; color: #ff9b9b; }
+  .gap-badge-high { background: #4a2f12; color: #ffb26b; }
+  .gap-badge-medium { background: #4a3c12; color: #f5d97a; }
+  .gap-badge-low { background: #14432e; color: #7fe3ab; }
+  .gap-badge-status { background: var(--darkened-bg); color: var(--body-quiet-color); border: 1px solid var(--border-color); }
+
+  .gap-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>🛡️ Cyber Security Report Card</h1>
+<p>Every login attempt, injection signature, scanner hit, and probe the site has automatically detected -- reviewed here, not emailed anywhere.</p>
+
+<div class="gap-stats-grid">
+  <div class="gap-card"><div class="num">{{ summary.total_24h }}</div><div class="label">Events (24h)</div></div>
+  <div class="gap-card"><div class="num">{{ summary.total_7d }}</div><div class="label">Events (7 days)</div></div>
+  <div class="gap-card"><div class="num">{{ summary.total_30d }}</div><div class="label">Events (30 days)</div></div>
+  <div class="gap-card"><div class="num">{{ summary.total_all_time }}</div><div class="label">All-time Events</div></div>
+  <div class="gap-card {% if summary.unresolved %}alert{% endif %}"><div class="num {% if summary.unresolved %}danger{% endif %}">{{ summary.unresolved }}</div><div class="label">Unresolved</div></div>
+  <div class="gap-card {% if summary.critical_unresolved %}alert{% endif %}"><div class="num {% if summary.critical_unresolved %}danger{% endif %}">{{ summary.critical_unresolved }}</div><div class="label">Critical &amp; Open</div></div>
+</div>
+
+<div class="gap-two-col">
+  <div class="gap-chart-wrap">
+    <p class="gap-panel-title">Attacks per day &middot; last 14 days</p>
+    <canvas id="gapTrendChart" height="90"></canvas>
+  </div>
+  <div class="gap-chart-wrap">
+    <p class="gap-panel-title">By severity &middot; last 30 days</p>
+    <canvas id="gapSeverityChart" height="90"></canvas>
+  </div>
+</div>
+
+<div class="gap-two-col">
+  <div>
+    <p class="gap-panel-title">By attack type &middot; last 30 days</p>
+    <table class="gap-sec-table">
+      <thead><tr><th>Type</th><th>Count</th></tr></thead>
+      <tbody>
+        {% for row in type_breakdown %}
+        <tr><td>{{ row.label }}</td><td>{{ row.count }}</td></tr>
+        {% empty %}
+        <tr><td colspan="2">No events recorded yet -- looking good.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <p class="gap-panel-title">Top source IPs &middot; last 30 days</p>
+    <table class="gap-sec-table">
+      <thead><tr><th>IP</th><th>Location</th><th>Count</th></tr></thead>
+      <tbody>
+        {% for row in top_ips %}
+        <tr>
+          <td class="gap-mono">{{ row.source_ip }}</td>
+          <td>{{ row.location.flag }} {{ row.location.label }}</td>
+          <td>{{ row.count }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No source IPs recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="gap-panel-title">Open events needing review</p>
+<table class="gap-sec-table">
+  <thead>
+    <tr>
+      <th>Severity</th>
+      <th>Type</th>
+      <th>Summary</th>
+      <th>Source IP</th>
+      <th>Location</th>
+      <th>Count</th>
+      <th>Status</th>
+      <th>Last seen</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for event in recent_unresolved %}
+    <tr>
+      <td><span class="gap-badge gap-badge-{{ event.severity }}">{{ event.get_severity_display }}</span></td>
+      <td>{{ event.get_event_type_display }}</td>
+      <td>{{ event.summary }}</td>
+      <td class="gap-mono">{{ event.source_ip|default:"—" }}</td>
+      <td>{{ event.location.flag }} {{ event.location.label|default:"—" }}</td>
+      <td>{{ event.occurrence_count }}</td>
+      <td><span class="gap-badge gap-badge-status">{{ event.get_status_display }}</span></td>
+      <td>{{ event.last_seen_at|date:"M j, H:i" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8">Nothing open right now. 🎉</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p style="margin-top:14px;"><a href="{% url 'admin:security_securityevent_changelist' %}">Open the full Security Events list &rarr;</a> to acknowledge, resolve, or mark false positives.</p>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+  new Chart(document.getElementById('gapTrendChart'), {
+    type: 'line',
+    data: {
+      labels: {{ trend_labels|safe }},
+      datasets: [{ label: 'Events', data: {{ trend_values|safe }}, borderColor: '#417690', backgroundColor: 'rgba(65,118,144,0.15)', fill: true, tension: 0.25 }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+  });
+
+  new Chart(document.getElementById('gapSeverityChart'), {
+    type: 'doughnut',
+    data: {
+      labels: {{ severity_labels|safe }},
+      datasets: [{ data: {{ severity_values|safe }}, backgroundColor: ['#7fe3ab', '#f5d97a', '#ffb26b', '#ff6b6b'] }]
+    },
+    options: { plugins: { legend: { position: 'bottom' } } }
+  });
+</script>
+{% endblock %}
